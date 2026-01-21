@@ -145,12 +145,17 @@ class PlanilhaClaro:
     def criar_coluna_ap(self):
         """
         COLUNA APOIO (AP) PARA TODOS CLIENTES QUE COMPRARAM UM APARELHO
+        Coloca 'AP' SOMENTE quando ICCID/IMEI tem menos de 19  caracteres (indicando aparelho)
         """
-        self.df["ATIVAÇÃO"] = self.df["ATIVAÇÃO"].fillna("").astype(str).str.strip().str.upper()
+        # Garante string e limpa
+        self.df['ICCID/IMEI'] = self.df['ICCID/IMEI'].fillna('').astype(str).str.strip()
+        self.df['ATIVAÇÃO'] = self.df['ATIVAÇÃO'].fillna('').astype(
+            str).str.strip().str.upper()  # ainda pode ser útil para outras lógicas
 
-        self.df['AP'] = self.df["ATIVAÇÃO"].apply(
-            lambda x: 'AP' if x == 'TROCA DE APARELHO PÓS OU CONTROLE' else ''
-        )
+        # Cria a coluna AP de forma vetorizada (mais eficiente)
+        self.df['AP'] = ''
+        mask_aparelho = (self.df['ICCID/IMEI'].str.len() < 19) & (self.df['ICCID/IMEI'] != '')
+        self.df.loc[mask_aparelho, 'AP'] = 'AP'
 
     def criar_coluna_loja(self):
         """
@@ -212,39 +217,72 @@ class PlanilhaClaro:
 
     def ajustar_faturas(self):
         """
-        ADICIONA NOME DO PLANO NAS COLUNAS FATURAS QUANDO SERVIÇO NAO TEM FATURA PARA PAGAR
-        :return:
+        ADICIONA NOME DO PLANO NAS COLUNAS FATURAS QUANDO SERVIÇO NÃO TEM FATURA PARA PAGAR
+        Usa abreviações específicas para alguns tipos
         """
-        # Lista de planos que devem ficar na colunas faturas
-        planos_fixos = ["TROCA APARELHO", "RESGATE", "PRE PAGO", "TROCA PLANO"]
+        # Dicionário de mapeamento para exibição nas faturas
+        abreviacoes_fatura = {
+            "TROCA APARELHO": "TROCA A",
+            "TROCA PLANO": "TROCA P",
+            "RESGATE": "RESGATE",  # mantido igual
+            "PRE PAGO": "PRE PAGO",  # mantido igual
+            "SEGURO PROTEÇÃO MÓVEL": "SEGURO P"
+            # Se surgirem mais no futuro, é só adicionar aqui
+        }
 
-        # Criar máscara: verifica se 'PLANOS' começa com algum valor da lista
+        # Lista de planos que devem ter o nome (ou abreviação) nas colunas de fatura
+        planos_fixos = list(abreviacoes_fatura.keys())
+
+        # Criar máscara: verifica se o início do PLANOS está na lista
+        # (considerando que pode ter /PORT no final)
         mask = self.df['PLANOS'].str.upper().str.split('/').str[0].isin(planos_fixos)
 
-        # Substituir valores nas colunas de faturas
+        # Aplicar a abreviação correta
+        def get_abreviacao(plano):
+            plano_base = plano.upper().split('/')[0].strip()
+            return abreviacoes_fatura.get(plano_base, plano_base)
+
         faturas = ['FATURA 1', 'FATURA 2', 'FATURA 3']
         for col in faturas:
-            self.df.loc[mask, col] = self.df.loc[mask, 'PLANOS']
+            self.df.loc[mask, col] = self.df.loc[mask, 'PLANOS'].apply(get_abreviacao)
 
     # Dentro da classe
     def remover_imei_ap(self):
         """
-        Remove valores da coluna 'ICCID/IMEI' com menos de 19 caracteres
-        apenas quando a coluna 'AP' não contém 'AP'.
-        Mantém todas as linhas e garante ICCID/IMEI como string.
+        Remove linhas onde a coluna 'Ativação' indica upgrade, troca equivalente ou seguro proteção móvel.
+        Isso elimina IMEIs/equipamentos associados a esses tipos de ativação indesejados.
         """
-        # Garante que tudo já é string e limpa espaços
-        self.df['AP'] = self.df['AP'].fillna('').astype(str).str.strip()
-        self.df['ICCID/IMEI'] = self.df['ICCID/IMEI'].fillna('').astype(str).str.strip()
-        self.df['ICCID/IMEI'] = self.df.apply(
-            lambda row: '' if 'AP' not in row['AP'].upper() and len(row['ICCID/IMEI']) < 19 else row['ICCID/IMEI'],
-            axis=1
-        )
+        coluna_ativacao = 'ATIVAÇÃO'  # Mude aqui se o nome exato for diferente (ex: 'Tipo Ativação', 'Ativação Plano', etc.)
 
-        # Garante que pandas não tente formatar como número
-        self.df['ICCID/IMEI'] = self.df['ICCID/IMEI'].apply(lambda x: str(x))
+        if coluna_ativacao not in self.df.columns:
+            print(f"Coluna '{coluna_ativacao}' não encontrada. Pulando remoção de linhas indesejadas.")
+            return
 
-        print(f"✅ {self.df['ICCID/IMEI'].apply(lambda x: x == '').sum()} IMEIs limpos.")
+        # Limpa espaços e converte para string
+        self.df[coluna_ativacao] = self.df[coluna_ativacao].fillna('').astype(str).str.strip().str.upper()
+
+        # Palavras-chave para remover (case-insensitive, mas usamos upper para facilitar)
+        termos_remover = [
+            'UPGRADE DE PLANO',
+            'TROCA PLANO EQUIVALENTE',
+            'SEGURO PROTEÇÃO MÓVEL'
+        ]
+
+        # Cria máscara: True se conter algum dos termos
+        mask = self.df[coluna_ativacao].str.contains('|'.join(termos_remover), na=False)
+
+        # Mostra quantas linhas seriam removidas (debug útil)
+        qtd_remover = mask.sum()
+        if qtd_remover > 0:
+            print(f"Removendo {qtd_remover} linhas com ativações indesejadas (upgrade/troca/seguro).")
+        else:
+            print("Nenhuma linha encontrada com os termos de remoção na coluna 'Ativação'.")
+
+        # Remove as linhas
+        self.df = self.df[~mask].reset_index(drop=True)
+
+        # Opcional: remove a coluna temporária se não precisar mais
+        # self.df.drop(columns=[coluna_ativacao], inplace=True)  # só se quiser limpar
 
 
 
@@ -254,9 +292,10 @@ class PlanilhaClaro:
         :return:
         """
         ordem_colunas = [
-            "DATA", "GED", "LOJA", "AP", "ICCID/IMEI",
-            "PLANOS", "CONSULTOR",
-            "CLIENTE", "CPF","NUMERO","PROVISORIO",
+            "DATA", "GED", "LOJA",
+            "PLANOS", "AP", "ICCID/IMEI",
+            "CONSULTOR","CLIENTE", "CPF",
+            "NUMERO","PROVISORIO",
             "DEBITO AUTOMATICO", "FATURA 1", "FATURA 2", "FATURA 3"
         ]
         self.df = self.df[ordem_colunas]

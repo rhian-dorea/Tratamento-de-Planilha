@@ -97,26 +97,26 @@ class EditorPlanilhaApp:
         self.barra = ttk.Progressbar(frame_barra, orient="horizontal", length=400, mode="determinate")
         self.barra.pack(pady=10)
 # pyinstaller --onefile --icon=app_icone.ico --name=ArranjoExcel --add-data="rodar.py;." --add-data="TratamentoDePlanilha.py;." --add-data="app_icone.ico;." --hidden-import=openpyxl --hidden-import=pandas Arranjo.py
+
     def buscando_icon(self):
-        import sys, os
+        import sys
+        # ... (seu resource_path)
 
-        def resource_path(relative_path):
-            if hasattr(sys, "_MEIPASS"):
-                return os.path.join(sys._MEIPASS, relative_path)
-            return os.path.join(os.path.abspath("."), relative_path)
+        icon_ico = resource_path("app_icone.ico")
+        icon_png = resource_path("app_icone.png")
 
-        icon_path = resource_path("app_icone.ico")  # AGORA FUNCIONA!
-
-        if os.path.exists(icon_path):
-            self.root.iconbitmap(icon_path)
-            try:
-                import ctypes
-                app_id = "ArranjoExcel.app"
-                ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
-            except:
-                pass
-        else:
-            print(f"⚠️ Ícone não encontrado: {icon_path}")
+        if sys.platform.startswith("win"):
+            if os.path.exists(icon_ico):
+                self.root.iconbitmap(icon_ico)
+                # seu código de app ID...
+        else:  # Linux / macOS
+            if os.path.exists(icon_png):
+                try:
+                    icone = tk.PhotoImage(file=icon_png)
+                    self.root.iconphoto(True, icone)
+                    print("Ícone PNG carregado com sucesso!")
+                except Exception as e:
+                    print(f"Erro no PNG: {e}")
 
     def selecionar_e_processar(self):
         arquivo = filedialog.askopenfilename(filetypes=[("Excel Files", "*.xlsx *.xls")])
