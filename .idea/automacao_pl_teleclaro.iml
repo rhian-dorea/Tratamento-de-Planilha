@@ -2,9 +2,11 @@
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/.venv" />
       <excludeFolder url="file://$MODULE_DIR$/.venv_excel_aut" />
+      <excludeFolder url="file://$MODULE_DIR$/venv_analise" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.12 (automacao_pl_teleclaro)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.12 (automacao_pl_teleclaro) (2)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>
