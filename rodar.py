@@ -7,10 +7,18 @@ class RunProcessos():
         df = pd.read_excel(
             df,
             header=2,
-            dtype=str  # ← força tudo como texto → mais simples e seguro para planilhas da Claro
+            dtype=str,  # ← força tudo como texto → mais simples e seguro para planilhas da Claro
+            engine='openpyxl'
         )
         # Depois, limpe apenas o que precisa (opcional)
         #df["Nº SÉRIE"] = df["Nº SÉRIE"].str.strip()
+
+        # Só a coluna DATA vira datetime
+        if 'DATA' in df.columns:
+            df['DATA'] = pd.to_datetime(df['DATA'], errors='coerce')
+            print(f"Datas inválidas em 'DATA': {df['DATA'].isna().sum()}")
+        else:
+            print("Coluna 'DATA' não encontrada.")
 
         self.planilha = PlanilhaClaro(df)
 
@@ -27,5 +35,3 @@ class RunProcessos():
 
     def salvar_tratamento(self):
        self.planilha.salvar("planilha_tratada.xlsx")
-
-

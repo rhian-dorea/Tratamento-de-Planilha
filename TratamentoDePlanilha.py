@@ -212,11 +212,11 @@ class PlanilhaClaro:
         :return:
         """
         # --- ACRESCENTANDO ATÉ TERCEIRA FATURA ---
-        self.df['FATURA 1'] = pd.to_datetime(self.df['FATURA 1'], dayfirst=True, errors='coerce')
+        self.df['FATURA 1'] = pd.to_datetime(self.df['FATURA 1'], errors='coerce')
         self.df['FATURA 2'] = self.df['FATURA 1'] + pd.DateOffset(months=1)
         self.df['FATURA 3'] = self.df['FATURA 1'] + pd.DateOffset(months=2)
         ## ---- FORMATANDO COLUNAS DATAS ----
-        self.df['DATA'] = pd.to_datetime(self.df['DATA'], dayfirst=True, errors='coerce')
+        self.df['DATA'] = pd.to_datetime(self.df['DATA'], errors='coerce')
         self.df['FATURA 1'] = self.df['FATURA 1'].dt.strftime('%d/%b')
         self.df['FATURA 2'] = self.df['FATURA 2'].dt.strftime('%d/%b')
         self.df['FATURA 3'] = self.df['FATURA 3'].dt.strftime('%d/%b')
