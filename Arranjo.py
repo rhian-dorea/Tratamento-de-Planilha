@@ -6,6 +6,9 @@ from tkinter import filedialog, messagebox
 import os
 import sys
 
+
+# best model for install (pyinstaller)
+# pyinstaller --onefile --windowed --icon=app_icone.ico --add-data "rodar.py;." --add-data "TratamentoDePlanilha.py;." --add-data "app_icone.ico;." --hidden-import pandas --hidden-import openpyxl --hidden-import PIL --hidden-import tkinter --name ArranjoExcel ArranjoExcel.py
 # ---- com terminal ----
 #python -m nuitka ArranjoExcel.py --standalone --onefile --enable-plugin=tk-inter --include-data-file=app_icone.ico=app_icone.ico --include-data-file=rodar.py=rodar.py --include-data-file=TratamentoDePlanilha.py=TratamentoDePlanilha.py --include-module=pandas --include-module=openpyxl --windows-icon-from-ico=app_icone.ico --output-dir=build_nuitka --remove-output
 # ---- sem terminal ----
@@ -13,6 +16,22 @@ import sys
 #-- 2
 # python -m nuitka ArranjoExcel.py --standalone --onefile --enable-plugin=tk-inter --include-data-file=app_icone.ico=app_icone.ico --include-data-file=rodar.py=rodar.py --include-data-file=TratamentoDePlanilha.py=TratamentoDePlanilha.py --include-module=pandas --include-module=openpyxl --windows-icon-from-ico=app_icone.ico --windows-console-mode=disable --output-dir=build_nuitka --remove-output
 # Configuração para PyInstaller
+# -- 3 (22/01/26)
+#  python3 -m nuitka \
+#   ArranjoExcel.py \
+#   --standalone \
+#   --onefile \
+#   --enable-plugin=tk-inter \
+#   --include-data-file=app_icone.ico=app_icone.ico \
+#   --include-data-file=rodar.py=rodar.py \
+#   --include-data-file=TratamentoDePlanilha.py=TratamentoDePlanilha.py \
+#   --include-module=pandas \
+#   --include-module=openpyxl \
+#   --windows-icon-from-ico=app_icone.ico \
+#   --windows-disable-console \
+#   --output-dir=build_nuitka \
+#   --remove-output
+
 def resource_path(relative_path):
     """Get absolute path to resource, works for dev and for PyInstaller"""
     try:
@@ -96,7 +115,6 @@ class EditorPlanilhaApp:
         # Barra de progresso
         self.barra = ttk.Progressbar(frame_barra, orient="horizontal", length=400, mode="determinate")
         self.barra.pack(pady=10)
-# pyinstaller --onefile --icon=app_icone.ico --name=ArranjoExcel --add-data="rodar.py;." --add-data="TratamentoDePlanilha.py;." --add-data="app_icone.ico;." --hidden-import=openpyxl --hidden-import=pandas Arranjo.py
 
     def buscando_icon(self):
         import sys

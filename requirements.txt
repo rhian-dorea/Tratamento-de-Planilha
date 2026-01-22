@@ -1,3 +1,4 @@
 pandas
 openpyxl
 
+# pyinstaller --onefile --icon=app_icone.ico --name=ArranjoExcel --add-data="rodar.py;." --add-data="TratamentoDePlanilha.py;." --add-data="app_icone.ico;." --hidden-import=openpyxl --hidden-import=pandas Arranjo.py

@@ -154,7 +154,14 @@ class PlanilhaClaro:
 
         # Cria a coluna AP de forma vetorizada (mais eficiente)
         self.df['AP'] = ''
-        mask_aparelho = (self.df['ICCID/IMEI'].str.len() < 19) & (self.df['ICCID/IMEI'] != '')
+
+        # Máscara para identificar aparelhos (IMEI geralmente 15-18 dígitos)
+        # < 19 evita ICCID (19-20 dígitos), > 14 evita valores muito curtos/inválidos
+        mask_aparelho = (
+                (self.df['ICCID/IMEI'].str.len() >= 15) &
+                (self.df['ICCID/IMEI'].str.len() <= 18) &
+                (self.df['ICCID/IMEI'] != '')
+        )
         self.df.loc[mask_aparelho, 'AP'] = 'AP'
 
     def criar_coluna_loja(self):
