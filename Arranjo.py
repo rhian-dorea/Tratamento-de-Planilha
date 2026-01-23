@@ -9,6 +9,8 @@ import sys
 
 # best model for install (pyinstaller)
 # pyinstaller --onefile --windowed --icon=app_icone.ico --add-data "rodar.py;." --add-data "TratamentoDePlanilha.py;." --add-data "app_icone.ico;." --hidden-import pandas --hidden-import openpyxl --hidden-import PIL --hidden-import tkinter --name ArranjoExcel ArranjoExcel.py
+# ---- opção 2 ----
+# # pyinstaller --onefile --icon=app_icone.ico --name=ArranjoExcel --add-data="rodar.py;." --add-data="TratamentoDePlanilha.py;." --add-data="app_icone.ico;." --hidden-import=openpyxl --hidden-import=pandas Arranjo.py
 # ---- com terminal ----
 #python -m nuitka ArranjoExcel.py --standalone --onefile --enable-plugin=tk-inter --include-data-file=app_icone.ico=app_icone.ico --include-data-file=rodar.py=rodar.py --include-data-file=TratamentoDePlanilha.py=TratamentoDePlanilha.py --include-module=pandas --include-module=openpyxl --windows-icon-from-ico=app_icone.ico --output-dir=build_nuitka --remove-output
 # ---- sem terminal ----
